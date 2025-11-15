@@ -205,6 +205,22 @@ vtkSmartPointer<vtkTexture> GetTexture(const fs::path& filePath, bool isSRGB = f
 
   return texture;
 }
+
+template<typename F>
+void ExecFuncOnAllPolyDataUniforms(vtkActorCollection* actors, F&& func)
+{
+  actors->InitTraversal();
+  vtkActor* actor = nullptr;
+
+  while ((actor = actors->GetNextActor()))
+  {
+    const vtkPolyDataMapper* mapper = vtkPolyDataMapper::SafeDownCast(actor->GetMapper());
+    if (mapper)
+    {
+      func(actor->GetShaderProperty()->GetVertexCustomUniforms());
+    }
+  }
+}
 }
 
 //----------------------------------------------------------------------------
@@ -1772,7 +1788,7 @@ void vtkF3DRenderer::UpdateActors()
   // XXX: Handle animation update in importer, which may have an impact on the colormap
   // We assume animation change do not change the number of actors
   vtkMTimeType importerUpdateMTime = this->Importer->GetUpdateMTime();
-  if (this->UsingExpandingRange && (importerUpdateMTime > this->ImporterTimeStamp) &&
+  if (this->UsingExpandingRange && (importerUpdateMTime > this->ImporterUpdateTimeStamp) &&
     (this->EnableColoring || (!this->UseRaytracing && this->UseVolume)))
   {
     // XXX: This could be improved further to only configure mappers and actors
@@ -2324,9 +2340,11 @@ void vtkF3DRenderer::SetPointSpritesProperties(SplatType type, double pointSprit
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 3, 20231102)
       sprites.Mapper->AnisotropicOff();
       sprites.Mapper->SetLowpassMatrix(0., 0., 0.);
+      sprites.Mapper->SetRotationArray(nullptr);
 #endif
 
       sprites.Mapper->SetScaleFactor(scaleFactor);
+      sprites.Mapper->SetScaleArray(nullptr);
 
       sprites.Mapper->SetSplatShaderCode(
         "//VTK::Color::Impl\n"
@@ -2776,19 +2794,20 @@ bool vtkF3DRenderer::ConfigureVolumeForColoring(vtkSmartVolumeMapper* mapper, vt
 //----------------------------------------------------------------------------
 void vtkF3DRenderer::ConfigureJitter(bool enable)
 {
-  vtkActorCollection* actors = this->GetActors();
-  actors->InitTraversal();
-  vtkActor* actor;
+  // needs https://gitlab.kitware.com/vtk/vtk/-/merge_requests/12534
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 5, 20251017)
+  if (!enable)
+  {
+    ExecFuncOnAllPolyDataUniforms(
+      this->GetActors(), [](vtkUniforms* uniforms) { uniforms->RemoveUniform("jitter"); });
+    return;
+  }
+#endif
 
   float jitter[2];
 
-  // TODO: Replace this with RemoveUniform after the VTK fix is updated,
-  // https://gitlab.kitware.com/vtk/vtk/-/merge_requests/12534
   if (enable)
   {
-    vtkInformation* information = this->GetInformation();
-    information->Remove(vtkF3DRenderPass::RENDER_UI_ONLY());
-
     jitter[0] = this->ConfigureHaltonSequence(0);
     jitter[1] = this->ConfigureHaltonSequence(1);
 
@@ -2805,18 +2824,8 @@ void vtkF3DRenderer::ConfigureJitter(bool enable)
     jitter[1] = 0.0f;
   }
 
-  while ((actor = actors->GetNextActor()))
-  {
-    const vtkPolyDataMapper* mapper = vtkPolyDataMapper::SafeDownCast(actor->GetMapper());
-    if (!mapper)
-    {
-      continue;
-    }
-
-    vtkShaderProperty* shaderProp = actor->GetShaderProperty();
-    vtkUniforms* uniforms = shaderProp->GetVertexCustomUniforms();
-    uniforms->SetUniform2f("jitter", jitter);
-  }
+  ExecFuncOnAllPolyDataUniforms(
+    this->GetActors(), [&](vtkUniforms* uniforms) { uniforms->SetUniform2f("jitter", jitter); });
 }
 
 //----------------------------------------------------------------------------
