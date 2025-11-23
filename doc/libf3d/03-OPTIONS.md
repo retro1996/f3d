@@ -439,6 +439,12 @@ Display the _filename info content_ on top of the window.
 
 Content of _filename info_ to display.
 
+### `ui.hdri_filename` (_bool_, default: `false`)
+
+Display the _HDRI filename info content_ on top of the window.
+
+CLI: `--hdri-filename`.
+
 ### `ui.font_file` (_path_, optional)
 
 Use the provided FreeType compatible font file to display text.
@@ -462,6 +468,10 @@ CLI: `--fps`.
 
 Show a _progress bar_ when loading the file.
 
+### `ui.loader_progress_color` (_color_, optional, **on load**)
+
+Set loader progress bar color or use default one #FFFFFF if not set.
+
 CLI: `--progress`.
 
 ### `ui.animation_progress` (_bool_, default: `false`, **on load**)
@@ -469,6 +479,10 @@ CLI: `--progress`.
 Show a _progress bar_ when playing the animation.
 
 CLI: `--animation-progress`.
+
+### `ui.animation_progress_color` (_color_, optional, **on load**)
+
+Set animation progress bar color or use default one #788BFF if not set.
 
 ### `ui.metadata` (_bool_, default: `false`)
 

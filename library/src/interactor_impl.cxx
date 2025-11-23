@@ -522,6 +522,9 @@ public:
       }
     }
 
+    // Update the dynamic options of the animation manager so check if the cheatsheet needs an
+    // update.
+    this->AnimationManager->UpdateDynamicOptions();
     // Always render after interaction
     this->Window.render();
   }
@@ -594,7 +597,12 @@ public:
 
     this->AnimationManager->Tick();
 
-    if (this->RenderRequested)
+    // Determine if we need a full render or just a UI render
+    // At the moment, only TAA requires a full render each frame
+    bool forceRender = (this->Options.render.effect.antialiasing.enable &&
+      this->Options.render.effect.antialiasing.mode == "taa");
+
+    if (this->RenderRequested || forceRender)
     {
       this->Window.render();
       this->RenderRequested = false;
@@ -1430,6 +1438,7 @@ interactor& interactor_impl::initBindings()
 #if F3D_MODULE_UI
   this->addBinding({mod_t::NONE, "N"}, "toggle ui.filename","Scene", std::bind(docTgl, "Filename", std::cref(opts.ui.filename)), f3d::interactor::BindingType::TOGGLE);
   this->addBinding({mod_t::NONE, "M"}, "toggle ui.metadata","Scene", std::bind(docTgl, "Metadata", std::cref(opts.ui.metadata)), f3d::interactor::BindingType::TOGGLE);
+  this->addBinding({mod_t::SHIFT, "N"}, "toggle ui.hdri_filename","Scene", std::bind(docTgl, "HDRI filename", std::cref(opts.ui.hdri_filename)), f3d::interactor::BindingType::TOGGLE);
   this->addBinding({mod_t::NONE, "Z"}, "toggle ui.fps","Scene", std::bind(docTgl, "FPS Counter", std::cref(opts.ui.fps)), f3d::interactor::BindingType::TOGGLE);
 #endif
 #if F3D_MODULE_RAYTRACING

@@ -411,6 +411,7 @@ void window_impl::UpdateDynamicOptions()
   renderer->ShowFilename(opt.ui.filename);
   renderer->SetFilenameInfo(opt.ui.filename_info);
   renderer->ShowMetaData(opt.ui.metadata);
+  renderer->ShowHDRIFilename(opt.ui.hdri_filename);
   renderer->ShowCheatSheet(opt.ui.cheatsheet);
   renderer->ShowConsole(opt.ui.console);
   renderer->ShowMinimalConsole(opt.ui.minimal_console);
@@ -653,6 +654,13 @@ vtkRenderWindow* window_impl::GetRenderWindow()
 bool window_impl::render()
 {
   this->UpdateDynamicOptions();
+  const options& opt = this->Internals->Options;
+  if ((!opt.scene.camera.index.has_value()) && (!this->Internals->Camera->GetSuccessfullyReset()))
+  {
+    // Camera wasn't successfully reset last time, it could be a chance that update of dynamic
+    // options will enable successful reset of camera
+    this->Internals->Camera->resetToBounds();
+  }
   this->Internals->RenWin->Render();
   return true;
 }

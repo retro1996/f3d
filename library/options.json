@@ -246,6 +246,10 @@
       "type": "bool",
       "default_value": "false"
     },
+    "hdri_filename": {
+      "type": "bool",
+      "default_value": "false"
+    },
     "font_file": {
       "type": "path"
     },
@@ -257,9 +261,15 @@
       "type": "bool",
       "default_value": "false"
     },
+    "loader_progress_color": {
+      "type": "color"
+    },
     "animation_progress": {
       "type": "bool",
       "default_value": "false"
+    },
+    "animation_progress_color": {
+      "type": "color"
     }
   },
   "model": {

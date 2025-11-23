@@ -38,13 +38,13 @@
     "openvdb": "v12.0.0",
     "ospray": "v2.12.0",
     "pybind11": "v2.9.2",
-    "python": "3.9",
+    "python": "3.10",
     "tbb": "v2021.10.0",
     "usd": "v24.08",
     "webp": "v1.2.4",
     "zlib": "v1.2.13"
   },
-  "vtk_commit_sha": "e1b9cc65420ad571d5c08437a947891d3b376b4f",
-  "docker_timestamp": "20251102_0",
+  "vtk_commit_sha": "9dc1fb0479f01be5a38b8b4787f13e96baa009de",
+  "docker_timestamp": "20251120_0",
   "global_cache_index": "1"
 }
